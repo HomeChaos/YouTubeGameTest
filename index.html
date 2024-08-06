@@ -190,10 +190,10 @@
     InitUnitySection();
 
     window.onfocus = function() {
-      unityGameInstance.SendMessage("YTGameWrapper", "ReceiveOnResumeEvent");
+      unityGameInstance.SendMessage("IDFAPreload", "BrowserVisible");
     };
     window.onblur = function() {
-      unityGameInstance.SendMessage("YTGameWrapper", "ReceiveOnPauseEvent");
+      unityGameInstance.SendMessage("IDFAPreload", "BrowserHide");
     };
 
     // Path 2: Use this path to Load resources (.wasm, .data, .js) that are Zipped and need to be decompressed
