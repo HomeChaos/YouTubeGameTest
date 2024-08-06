@@ -60,15 +60,15 @@
     }
 
     var buildUrl = "Build";
-    var loaderUrl = buildUrl + "/Youtube.loader.js";
+    var loaderUrl = buildUrl + "/BasketBattleWeb.loader.js";
     var config = {
-      dataUrl: buildUrl + "/Youtube.data",
-      frameworkUrl: buildUrl + "/Youtube.framework.js",
-        codeUrl: buildUrl + "/Youtube.wasm",
+      dataUrl: buildUrl + "/BasketBattleWeb.data.unityweb",
+      frameworkUrl: buildUrl + "/BasketBattleWeb.framework.js.unityweb",
+        codeUrl: buildUrl + "/BasketBattleWeb.wasm.unityweb",
       streamingAssetsUrl: "StreamingAssets",
-      companyName: "DefaultCompany",
-      productName: "YoutubeTest",
-      productVersion: "1.0",
+      companyName: "Noor Creative, LLC",
+      productName: "Basket Battle",
+      productVersion: "3.4",
       showBanner: unityShowBanner,
     };
 
@@ -106,40 +106,27 @@
     // however its best to not trigger this if you dont used compression. 
     // NOTE: GZip does not work ATM.  If this is needed Unarchiver will need to be updated.
     loadResources = (callback) => {
-      const subZipStr = '.zip';
-      const subWASMStr = '.wasm';
-      const subJSStr = '.js';
-
       var codeUrl = config.codeUrl;
       var shouldDecompress = true;
 
-      // check if .zip already exists in the URL, if it doesnt check if a .zip file exists
-      if (!codeUrl.includes(subZipStr)) {
-        if (UrlExists(codeUrl + subZipStr)) {
-          codeUrl = codeUrl + subZipStr;
-        } else {
-          shouldDecompress = false;
+      let processedCount = 0;
+
+      let readyDefiner = () => {
+        processedCount++;
+        if(processedCount === 2) {
+          callback();
         }
       }
 
-      // decompress if using a zip file, otherwise just load regular wasm file
-      if (shouldDecompress) {
-        // Decompress the file based on the type, WASM, JS, etc.
-        // if you need more types please add a const above and modify the type logic below.
-        var blobType = 'application/octet-stream';
-        if (codeUrl.includes(subWASMStr)){
-          blobType = 'application/wasm';
-        } else if (codeUrl.includes(subJSStr)){
-          blobType = 'text/javascript';
-        }
-        
-        DecompressFile(codeUrl, blobType, (file) => {
-          config.codeUrl = file;
-          callback();
-        });
-      } else {
-        callback();
-      }
+      DecompressFile(config.codeUrl, 'application/wasm', (file) => {
+        config.codeUrl = file;
+        readyDefiner();
+      });
+
+      DecompressFile(config.dataUrl, 'application/data', (file) => {
+        config.dataUrl = file;
+        readyDefiner();
+      });
     }
 
     // Fetch/Load a file then call our callback 
@@ -202,9 +189,16 @@
     // Path 1: Use this path if no decompression of your .wasm, .data, .js files are needed
     InitUnitySection();
 
+    window.onfocus = function() {
+      unityGameInstance.SendMessage("YTGameWrapper", "ReceiveOnResumeEvent");
+    };
+    window.onblur = function() {
+      unityGameInstance.SendMessage("YTGameWrapper", "ReceiveOnPauseEvent");
+    };
+
     // Path 2: Use this path to Load resources (.wasm, .data, .js) that are Zipped and need to be decompressed
     // if you dont use compresseion its best to comment out Path 1 and uncomment Path 2.
-    // loadResources(InitUnitySection);  // Uncomment this line to start Unity by loading zipped files
+    //loadResources(InitUnitySection);  // Uncomment this line to start Unity by loading zipped files
   </script>
 </body>
 </html>
